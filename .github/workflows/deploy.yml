@@ -2,21 +2,37 @@ name: Deployment
 on: push
 jobs:
   lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get code
-        uses: actions/checkout@v3
-      - name: Cache dependencies
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
-      - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: npm ci
-      - name: Lint code
-        run: npm run lint
+    # runs-on: ubuntu-latest
+    # steps:
+    #   - name: Get code
+    #     uses: actions/checkout@v3
+    #   - name: Cache dependencies
+    #     id: cache
+    #     uses: actions/cache@v3
+    #     with:
+    #       path: node_modules
+    #       key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+    #   - name: Install dependencies
+    #     if: steps.cache.outputs.cache-hit != 'true'
+    #     run: npm ci
+    #   - name: Lint code
+    #     run: npm run lint
+        environment: testing
+        runs-on: ubuntu-latest
+        container:
+            image: node:16
+        env:
+            MONGODB_CONNECTION: mongodb
+            MONGODB_CLUSTER_ADDRESS: mongodb
+            MONGODB_USERNAME: root
+            MONGODB_PASSWORD: root
+            PORT: 8080
+        services:
+            mongodb:
+                image: mongo
+                env:
+                    MONGODB_INITDB_ROOT_USERNAME: root
+                    MONGODB_INITDB_ROOT_PASSWORD: root 
   test:
     runs-on: ubuntu-latest
     steps:
