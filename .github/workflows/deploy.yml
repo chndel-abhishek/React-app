@@ -2,38 +2,53 @@ name: Deployment
 on: push
 jobs:
   lint:
-    # runs-on: ubuntu-latest
-    # steps:
-    #   - name: Get code
-    #     uses: actions/checkout@v3
-    #   - name: Cache dependencies
-    #     id: cache
-    #     uses: actions/cache@v3
-    #     with:
-    #       path: node_modules
-    #       key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
-    #   - name: Install dependencies
-    #     if: steps.cache.outputs.cache-hit != 'true'
-    #     run: npm ci
-    #   - name: Lint code
-    #     run: npm run lint
-        environment: testing
-        runs-on: ubuntu-latest
-        container:
-            image: node:16
-        env:
-            MONGODB_CONNECTION: mongodb
-            MONGODB_CLUSTER_ADDRESS: mongodb
-            MONGODB_USERNAME: root
-            MONGODB_PASSWORD: root
-            PORT: 8080
-        services:
-            mongodb:
-                image: mongo
-                env:
-                    MONGODB_INITDB_ROOT_USERNAME: root
-                    MONGODB_INITDB_ROOT_PASSWORD: root 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
+      - name: Lint code
+        run: npm run lint
   test:
+          environment: testing
+          runs-on: ubuntu-latest
+          container:
+              image: node:16
+          env:
+              MONGODB_CONNECTION: mongodb
+              MONGODB_CLUSTER_ADDRESS: mongodb
+              MONGODB_USERNAME: root
+              MONGODB_PASSWORD: root
+              PORT: 8080
+          services:
+              mongodb:
+                  image: mongo
+                  env:
+                      MONGODB_INITDB_ROOT_USERNAME: root
+                      MONGODB_INITDB_ROOT_PASSWORD: root 
+          steps:
+              - name: get code
+                uses: actions/checkout@v3
+              - name: get caches
+                uses: actions/cache@v3
+                with:
+                  path: ~/.npm
+                  key: ${{ env.CACHE_KEY }}-${{ hashFiles('**/NodeApp/package-lock.json') }}
+              - name: start server
+                run: npm start & npx wait-on http://127.0.0.1:$PORT
+              - name: install dependencies
+                run: npm ci
+              - name: Run npm tests
+                run: npm test      
+  test1:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
